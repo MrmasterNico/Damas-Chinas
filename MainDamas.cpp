@@ -4,8 +4,7 @@
 
 int main() {
 
-    // OPCIONAL: si aun quieres UTF-8, activa consola:
-    // system("chcp 65001 > nul");
+
 
     while (true) {
 
