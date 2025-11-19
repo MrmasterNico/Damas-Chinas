@@ -5,36 +5,28 @@
 #include <algorithm>
 #include <cctype>
 #include <chrono>
-#include <conio.h>      // para _kbhit()
-#include <random>       // para IA aleatoria
+#include <conio.h>    
+#include <random>       
 
-// =======================
-//   TABLERO 10x10
-// =======================
+
 char Tablero[10][10];
 
 static inline bool Dentro(int r, int c) { return r >= 0 && r < 10 && c >= 0 && c < 10; }
 
-// =======================
-//   GENERADOR ALEATORIO (IA)
-// =======================
+
 static std::mt19937& rng() {
     static std::mt19937 gen((unsigned)std::chrono::high_resolution_clock::now().time_since_epoch().count());
     return gen;
 }
 
-// =======================
-//   LIMPIAR BUFFER TECLADO
-// =======================
+
 void LimpiarBufferTeclado() {
     while (_kbhit()) {
-        _getch(); // vacía todas las teclas pendientes
+        _getch();
     }
 }
 
-// =======================
-//        MENÚ
-// =======================
+
 void MostrarMenuPrincipal() {
     std::cout << "===================================\n";
     std::cout << "      DAMAS INTERNACIONALES 10x10  \n";
@@ -62,9 +54,7 @@ void MostrarControles() {
     std::cout << "Si se acaba el tiempo -> turno perdido.\n";
 }
 
-// =======================
-//   INICIALIZAR JUEGO
-// =======================
+
 void InicializarJuego(Jugador& j1, Jugador& j2, int& turno) {
     j1.man = 'x';  j1.king = 'X';  j1.pieces = 20;  j1.score = 0;
     j2.man = 'o';  j2.king = 'O';  j2.pieces = 20;  j2.score = 0;
@@ -88,9 +78,7 @@ void InicializarJuego(Jugador& j1, Jugador& j2, int& turno) {
                 Tablero[r][c] = j1.man, placed++;
 }
 
-// ========================
-//   MOSTRAR TABLERO ASCII
-// ========================
+
 void MostrarTablero() {
     std::cout << "\n   ";
     for (char ch = 'A'; ch <= 'J'; ch++) std::cout << ch << ' ';
@@ -107,9 +95,7 @@ void MostrarTablero() {
     std::cout << "\n";
 }
 
-// ========================
-//   COORDENADAS
-// ========================
+
 int CoordLetraAIndice(char letra) {
     letra = toupper(letra);
     if (letra < 'A' || letra > 'J') return -1;
@@ -120,9 +106,7 @@ int CoordNumeroAIndice(int num) {
     return num - 1;
 }
 
-// ========================
-//   CAPTURAS
-// ========================
+
 bool PuedeCapturarDesde(int r, int c, char man, char king) {
     if (!Dentro(r, c)) return false;
     char p = Tablero[r][c];
@@ -148,9 +132,7 @@ bool ExisteCapturaParaJugador(Jugador& J) {
     return false;
 }
 
-// ========================
-//   MOVIMIENTOS
-// ========================
+
 std::vector<std::pair<int, int>> MovimientosValidosPara(int r, int c, char man, char king, bool onlyCaptures) {
     std::vector<std::pair<int, int>> v;
     char p = Tablero[r][c];
@@ -188,20 +170,18 @@ std::vector<std::pair<int, int>> MovimientosValidosPara(int r, int c, char man, 
     return v;
 }
 
-// ========================
-//   APLICAR MOVIMIENTO
-// ========================
+
 bool AplicarMovimientoYCapturas(Jugador& J, Jugador& Opp, int sr, int sc, int dr, int dc) {
     char piece = Tablero[sr][sc];
     int distR = dr - sr, distC = dc - sc;
-    // Movimiento simple
+  
     if (abs(distR) == 1 && abs(distC) == 1) {
         Tablero[dr][dc] = piece;
         Tablero[sr][sc] = '.';
         CoronacionSiCorresponde(J, dr, dc);
         return true;
     }
-    // Captura
+
     if (abs(distR) == 2 && abs(distC) == 2) {
         int mr = (sr + dr) / 2, mc = (sc + dc) / 2;
         if (Tablero[mr][mc] == Opp.man || Tablero[mr][mc] == Opp.king) {
@@ -217,9 +197,7 @@ bool AplicarMovimientoYCapturas(Jugador& J, Jugador& Opp, int sr, int sc, int dr
     return false;
 }
 
-// ========================
-//     CORONACION
-// ========================
+
 void CoronacionSiCorresponde(Jugador& J, int r, int c) {
     if (Tablero[r][c] == J.man) {
         if (J.man == 'x' && r == 0) Tablero[r][c] = J.king, J.score += 5;
@@ -227,9 +205,7 @@ void CoronacionSiCorresponde(Jugador& J, int r, int c) {
     }
 }
 
-// ========================
-//      TIMER 45s
-// ========================
+
 bool VerificarTiempoTurno(int limite) {
     using namespace std::chrono;
     auto start = steady_clock::now();
@@ -248,9 +224,7 @@ bool VerificarTiempoTurno(int limite) {
     }
 }
 
-// ========================
-//  SELECCIONAR FICHA
-// ========================
+
 bool EscogerFicha(Jugador& J, int& r, int& c, bool forced) {
     while (true) {
         std::cout << J.nombre << " seleccione ficha (ej: B3): ";
@@ -271,9 +245,7 @@ bool EscogerFicha(Jugador& J, int& r, int& c, bool forced) {
     }
 }
 
-// ========================
-//   SELECCIONAR Y MOVER (HUMANO)
-// ========================
+
 bool SeleccionarYMover(Jugador& J, Jugador& Opp, int turno) {
     bool forced = ExisteCapturaParaJugador(J);
     int sr, sc;
@@ -312,11 +284,9 @@ bool SeleccionarYMover(Jugador& J, Jugador& Opp, int turno) {
     return true;
 }
 
-// ========================
-//   IA BÁSICA (ALEATORIA, PRIORIDAD CAPTURAS)
-// ========================
+
 void MoverIA(Jugador& IA, Jugador& Hum, int& turno) {
-    // Recolectar todos los movimientos o capturas posibles de la IA
+    
     struct Move { int sr, sc, dr, dc; };
     std::vector<Move> captures;
     std::vector<Move> simples;
@@ -324,7 +294,7 @@ void MoverIA(Jugador& IA, Jugador& Hum, int& turno) {
     for (int r = 0; r < 10; ++r) {
         for (int c = 0; c < 10; ++c) {
             if (Tablero[r][c] != IA.man && Tablero[r][c] != IA.king) continue;
-            // si hay capturas desde aquí, pedir solo capturas
+       
             auto caps = MovimientosValidosPara(r, c, IA.man, IA.king, true);
             for (auto& p : caps) captures.push_back({ r, c, p.first, p.second });
             if (captures.empty()) {
@@ -334,12 +304,12 @@ void MoverIA(Jugador& IA, Jugador& Hum, int& turno) {
         }
     }
 
-    // elegir move: si hay captures, escoger una al azar; si no, un simple al azar.
+    
     if (!captures.empty()) {
         std::uniform_int_distribution<int> dist(0, (int)captures.size() - 1);
         Move m = captures[dist(rng())];
         AplicarMovimientoYCapturas(IA, Hum, m.sr, m.sc, m.dr, m.dc);
-        // encadenar capturas si existen desde la nueva posición
+       
         int curR = m.dr, curC = m.dc;
         while (PuedeCapturarDesde(curR, curC, IA.man, IA.king)) {
             auto next = MovimientosValidosPara(curR, curC, IA.man, IA.king, true);
@@ -354,14 +324,12 @@ void MoverIA(Jugador& IA, Jugador& Hum, int& turno) {
         std::uniform_int_distribution<int> dist(0, (int)simples.size() - 1);
         Move m = simples[dist(rng())];
         AplicarMovimientoYCapturas(IA, Hum, m.sr, m.sc, m.dr, m.dc);
-        // no encadenamiento para movimientos simples (solo capturas encadenadas)
+        
     }
-    // la IA no necesita temporizador; turno se alterna en main
+    
 }
 
-// ========================
-//        GANADOR
-// ========================
+
 bool TieneMovimientos(Jugador& J) {
     for (int r = 0; r < 10; r++)
         for (int c = 0; c < 10; c++)
