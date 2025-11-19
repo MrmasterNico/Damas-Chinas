@@ -1,1 +1,2 @@
 # Damas-Chinas
+Este proyecto es una versión en C++ del juego de Damas Internacionales en un tablero de 10x10. Cada jugador empieza con 20 piezas ubicadas en las casillas oscuras de las primeras cuatro filas. El objetivo es simple: capturar o dejar sin movimientos al oponente. El juego incluye movimientos diagonales, capturas obligatorias, coronación y hasta un modo para jugar contra una IA básica. También cuenta con un temporizador por turno y un sistema de puntuación para hacerlo más dinámico.
